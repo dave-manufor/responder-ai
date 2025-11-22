@@ -1,0 +1,446 @@
+openapi: 3.0.0
+info:
+  title: Respondr.ai Backend API
+  description: Mass Casualty Triage & Logistics Assistant API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local Development Server
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns database connection status and timestamp.
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /hospitals:
+    get:
+      summary: List Hospitals
+      description: List all hospitals or filter by proximity.
+      parameters:
+        - name: lat
+          in: query
+          schema:
+            type: number
+          description: Latitude for proximity search
+        - name: lon
+          in: query
+          schema:
+            type: number
+          description: Longitude for proximity search
+        - name: max_km
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Maximum distance in kilometers
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hospital'
+
+  /reserve_bed:
+    post:
+      summary: Reserve Bed
+      description: Reserve bed(s) at a specific hospital with safety buffer logic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BedReservation'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '404':
+          description: Hospital not found
+
+  /api/allocate:
+    post:
+      summary: Allocate Beds (Bulk)
+      description: Main allocation endpoint - distribute patients across nearby hospitals.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AllocationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllocationPlan'
+        '400':
+          description: Bad Request (e.g., invalid coordinates)
+
+  /api/radio/text:
+    post:
+      summary: Process Radio Text
+      description: Process radio transcript through Orchestrate layer (local or cloud mode).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RadioTranscript'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '500':
+          description: Agent processing error
+
+  /api/radio/audio:
+    post:
+      summary: Process Radio Audio
+      description: Process radio audio (WAV) through Watson STT and then Orchestrate layer.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                session_id:
+                  type: string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '500':
+          description: Audio processing error
+
+  /api/session/{session_id}:
+    get:
+      summary: Get Session
+      description: Retrieve current session state.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+        '404':
+          description: Session not found
+
+  /api/sessions:
+    get:
+      summary: List Sessions
+      description: List all sessions, optionally filtered by status.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, COMPLETED, ARCHIVED]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Incident'
+
+  /api/reset:
+    post:
+      summary: Reset Allocations
+      description: Reset all allocated beds to 0 (for demo restarts).
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        database:
+          type: string
+          enum: [connected, disconnected]
+        timestamp:
+          type: string
+          format: date-time
+      required: [status, database, timestamp]
+
+    Hospital:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          default: Feature
+        geometry:
+          $ref: '#/components/schemas/GeoJSONGeometry'
+        properties:
+          $ref: '#/components/schemas/HospitalProperties'
+        allocated:
+          type: integer
+          default: 0
+        last_updated:
+          type: string
+          format: date-time
+      required: [_id, name, geometry, properties]
+
+    GeoJSONGeometry:
+      type: object
+      properties:
+        type:
+          type: string
+          default: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+          description: "[longitude, latitude]"
+      required: [type, coordinates]
+
+    HospitalProperties:
+      type: object
+      properties:
+        zone:
+          type: string
+        icu_capacity:
+          type: integer
+        trauma_capacity:
+          type: integer
+        specialties:
+          type: array
+          items:
+            type: string
+        contact:
+          type: string
+      required: [zone, icu_capacity, trauma_capacity]
+
+    BedReservation:
+      type: object
+      properties:
+        hospital_id:
+          type: string
+        severity:
+          type: string
+          enum: [RED, YELLOW, GREEN, BLACK]
+        patient_count:
+          type: integer
+          default: 1
+      required: [hospital_id, severity]
+
+    ReservationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, CONFLICT]
+        hospital:
+          type: string
+        beds_reserved:
+          type: integer
+        remaining_capacity:
+          type: integer
+        available:
+          type: integer
+        message:
+          type: string
+      required: [status]
+
+    AllocationRequest:
+      type: object
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+        patient_count:
+          type: integer
+        triage_color:
+          type: string
+          enum: [RED, YELLOW, GREEN, BLACK]
+          default: RED
+      required: [lat, lon, patient_count]
+
+    AllocationPlan:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, PARTIAL, OVERFLOW]
+        plan:
+          type: array
+          items:
+            $ref: '#/components/schemas/HospitalAllocation'
+        unallocated:
+          type: integer
+          default: 0
+        message:
+          type: string
+      required: [status, plan]
+
+    HospitalAllocation:
+      type: object
+      properties:
+        hospital_id:
+          type: string
+        hospital_name:
+          type: string
+        patients_sent:
+          type: integer
+        coordinates:
+          type: array
+          items:
+            type: number
+        distance_km:
+          type: number
+      required: [hospital_id, hospital_name, patients_sent, coordinates, distance_km]
+
+    RadioTranscript:
+      type: object
+      properties:
+        transcript:
+          type: string
+          description: Radio transmission text
+        session_id:
+          type: string
+          description: Optional session ID
+      required: [transcript]
+
+    AgentResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        transcript:
+          type: string
+        action:
+          type: string
+          enum: [acknowledged, location_updated, casualty_reported, beds_allocated, triage_error, allocation_error]
+        message:
+          type: string
+        session_state:
+          type: object
+        triage_result:
+          $ref: '#/components/schemas/TriageResult'
+        allocation_result:
+          $ref: '#/components/schemas/AllocationPlan'
+      required: [session_id, transcript, action, message]
+
+    TriageResult:
+      type: object
+      properties:
+        triage_color:
+          type: string
+          enum: [RED, YELLOW, GREEN, BLACK]
+        primary_injury:
+          type: string
+        specialty_needed:
+          type: string
+        confidence:
+          type: number
+        reasoning:
+          type: string
+      required: [triage_color, primary_injury, specialty_needed, confidence]
+
+    Incident:
+      type: object
+      properties:
+        _id:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, RESOLVED, ARCHIVED]
+        created_at:
+          type: string
+          format: date-time
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            long:
+              type: number
+        casualty_log:
+          type: array
+          items:
+            $ref: '#/components/schemas/CasualtyLog'
+        total_casualties:
+          type: integer
+        allocated_beds:
+          type: integer
+      required: [_id, status, created_at]
+
+    CasualtyLog:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        transcript:
+          type: string
+        extracted_count:
+          type: integer
+        triage_color:
+          type: string
+          enum: [RED, YELLOW, GREEN, BLACK]
+        primary_injury:
+          type: string
+      required: [timestamp, transcript, extracted_count, triage_color, primary_injury]

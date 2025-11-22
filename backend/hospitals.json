@@ -1,0 +1,146 @@
+[
+  {
+    "_id": "hosp_001",
+    "name": "Kenyatta National Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8219, -1.3021]
+    },
+    "properties": {
+      "zone": "Upper Hill",
+      "icu_capacity": 20,
+      "trauma_capacity": 25,
+      "specialties": ["Trauma Surgery", "Neurosurgery", "Burn Unit", "ICU"],
+      "contact": "+254-20-2726300"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_002",
+    "name": "Nairobi Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8120, -1.2850]
+    },
+    "properties": {
+      "zone": "Parklands",
+      "icu_capacity": 15,
+      "trauma_capacity": 18,
+      "specialties": ["General Surgery", "Orthopedics", "Cardiology"],
+      "contact": "+254-20-2845000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_003",
+    "name": "Aga Khan University Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8069, -1.2674]
+    },
+    "properties": {
+      "zone": "Parklands",
+      "icu_capacity": 18,
+      "trauma_capacity": 20,
+      "specialties": ["Trauma", "Cardiology", "Vascular Surgery", "ICU"],
+      "contact": "+254-20-3662000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_004",
+    "name": "MP Shah Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8158, -1.2627]
+    },
+    "properties": {
+      "zone": "Parklands",
+      "icu_capacity": 12,
+      "trauma_capacity": 15,
+      "specialties": ["General Surgery", "Orthopedics"],
+      "contact": "+254-20-4285000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_005",
+    "name": "Mater Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8280, -1.2942]
+    },
+    "properties": {
+      "zone": "South B",
+      "icu_capacity": 14,
+      "trauma_capacity": 16,
+      "specialties": ["Maternity", "General Surgery", "Pediatrics"],
+      "contact": "+254-20-2717700"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_006",
+    "name": "Gertrudes Children's Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8195, -1.2804]
+    },
+    "properties": {
+      "zone": "Muthaiga",
+      "icu_capacity": 10,
+      "trauma_capacity": 8,
+      "specialties": ["Pediatrics", "Pediatric Surgery"],
+      "contact": "+254-20-7207000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_007",
+    "name": "Karen Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.7072, -1.3194]
+    },
+    "properties": {
+      "zone": "Karen",
+      "icu_capacity": 8,
+      "trauma_capacity": 12,
+      "specialties": ["General Surgery", "Orthopedics"],
+      "contact": "+254-20-6621000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  },
+  {
+    "_id": "hosp_008",
+    "name": "Coptic Hospital",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [36.8400, -1.3100]
+    },
+    "properties": {
+      "zone": "Langata",
+      "icu_capacity": 6,
+      "trauma_capacity": 10,
+      "specialties": ["General Surgery"],
+      "contact": "+254-20-5060000"
+    },
+    "allocated": 0,
+    "last_updated": "2025-11-22T06:00:00Z"
+  }
+]

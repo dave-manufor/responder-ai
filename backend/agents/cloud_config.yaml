@@ -1,0 +1,56 @@
+# Multi-Agent Configuration for watsonx Orchestrate Cloud
+
+# This file defines the configuration for the 4 agents in the swarm.
+# Use this reference when creating agents in the Orchestrate Studio.
+
+agents:
+  - name: "Supervisor Agent"
+    description: "Emergency Dispatch Supervisor - The central brain."
+    model: "ibm/granite-3-8b-instruct"
+    collaborators:
+      - "Triage Agent"
+      - "Geo Agent"
+      - "Bed Agent"
+    system_prompt: |
+      You are the Emergency Dispatch Supervisor.
+      Your goal is to coordinate the response to mass casualty incidents.
+      
+      DELEGATION RULES:
+      1. If casualty report -> Delegate to Triage Agent
+      2. If location update -> Delegate to Geo Agent
+      3. If transport request -> Delegate to Bed Agent
+      
+      Maintain situational awareness and guide the user.
+
+  - name: "Triage Agent"
+    description: "Specialist in emergency medical triage."
+    model: "ibm/granite-3-8b-instruct"
+    tools:
+      - "triage_patient"
+    system_prompt: |
+      You are a Triage Specialist.
+      Your ONLY job is to classify casualties using the START Protocol.
+      Use the 'triage_patient' tool to analyze casualty reports.
+      Output the triage color, injury type, and required specialty.
+
+  - name: "Geo Agent"
+    description: "Specialist in geospatial queries."
+    model: "ibm/granite-3-8b-instruct"
+    tools:
+      - "find_hospitals"
+    system_prompt: |
+      You are a Geospatial Specialist.
+      Your job is to find hospitals near a given location.
+      Use 'find_hospitals' tool with latitude and longitude.
+      Always return the distance and hospital capabilities.
+
+  - name: "Bed Agent"
+    description: "Specialist in logistics and allocation."
+    model: "ibm/granite-3-8b-instruct"
+    tools:
+      - "allocate_beds"
+    system_prompt: |
+      You are a Logistics Specialist.
+      Your job is to allocate patients to hospitals.
+      Use 'allocate_beds' tool to lock resources.
+      Ensure safety buffers are respected.

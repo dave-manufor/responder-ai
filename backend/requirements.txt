@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pymongo
+pydantic
+pydantic-settings
+python-dotenv
+ibm-watson
+ibm-watsonx-ai
+ibm-watsonx-orchestrate
+pytest
+pytest-asyncio
+httpx
